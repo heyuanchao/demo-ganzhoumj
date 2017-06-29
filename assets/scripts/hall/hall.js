@@ -35,8 +35,8 @@ cc.Class({
         this.enterRoom = cc.find("Canvas/bg/enter_room")
         this.enterRoomFrame = cc.find("Canvas/bg/enter_room/frame")
 
-        this.roomNumber = cc.find("Canvas/bg/enter_room/frame/input/room_number").getComponent(cc.Label)
-        this.roomNumberPlaceHolder = cc.find("Canvas/bg/enter_room/frame/input/place_holder")
+        // this.roomNumber = cc.find("Canvas/bg/enter_room/frame/input/room_number").getComponent(cc.Label)
+        // this.roomNumberPlaceHolder = cc.find("Canvas/bg/enter_room/frame/input/place_holder")
 
         Notification.on("onopen", function () {
             sendTokenLogin()
@@ -152,6 +152,10 @@ cc.Class({
 
     showSetting: function () {
         this.setting.getComponent("setting").hideDisbandRoom().show()
+    },
+
+    showExitDialog: function () {
+        showExitDialog()
     },
 
     showCreateRoom: function () {

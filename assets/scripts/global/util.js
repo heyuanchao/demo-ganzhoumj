@@ -68,3 +68,14 @@ window.playEffect = function (audioName) {
 // cc.sys.localStorage.setItem(itemName, item)
 // cc.sys.localStorage.getItem(itemName)
 // cc.sys.localStorage.removeItem(itemName)
+
+window.showExitDialog = function () {
+    if (cc.sys.isMobile) {
+        if (cc.sys.os == cc.sys.OS_ANDROID) {
+            var className = "org/cocos2dx/javascript/AppActivity";
+            var methodName = "showExitDialog";
+            var methodSignature = "()V";
+            jsb.reflection.callStaticMethod(className, methodName, methodSignature);
+        }
+    }
+}

@@ -22,19 +22,8 @@ cc.Class({
                 // cc.find('Bgm').getComponent('bgm').resume();
                 break;
             case cc.KEY.back: // 6, 返回键
-                this.showExitDialog();
+                showExitDialog()
                 break;
-        }
-    },
-
-    showExitDialog() {
-        if (cc.sys.isMobile) {
-            if (cc.sys.os == cc.sys.OS_ANDROID) {
-                var className = "org/cocos2dx/javascript/AppActivity";
-                var methodName = "showExitDialog";
-                var methodSignature = "()V";
-                jsb.reflection.callStaticMethod(className, methodName, methodSignature);
-            }
         }
     },
 

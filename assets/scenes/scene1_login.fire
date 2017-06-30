@@ -251,7 +251,7 @@
       "__id__": 4
     },
     "_enabled": true,
-    "transition": 3,
+    "transition": 1,
     "pressedColor": {
       "__type__": "cc.Color",
       "r": 211,
@@ -282,9 +282,9 @@
     "_N$enableAutoGrayEffect": false,
     "_N$normalColor": {
       "__type__": "cc.Color",
-      "r": 214,
-      "g": 214,
-      "b": 214,
+      "r": 255,
+      "g": 255,
+      "b": 255,
       "a": 255
     },
     "_N$disabledColor": {

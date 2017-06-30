@@ -29,6 +29,9 @@ cc.Class({
         this.loading2 = cc.instantiate(this.loading2Prefab)
         this.node.addChild(this.loading2)
 
+        this.inform = cc.find("Canvas/bg/inform")
+        this.informFrame = cc.find("Canvas/bg/inform/frame")
+
         this.createRoom = cc.find("Canvas/bg/create_room")
         this.createRoomFrame = cc.find("Canvas/bg/create_room/frame")
 
@@ -48,8 +51,8 @@ cc.Class({
         Notification.on("onerror", function () {
             self.loading2.getComponent("loading2").hide()
 
-            self.dialog.getComponent("dialog").setMessage("无法连接服务器，是否继续尝试重连?")
-                .setPositiveButton(function () {
+            self.dialog.getComponent("dialog").setMessage("无法连接服务器，是否继续尝试重连?").
+                setPositiveButton(function () {
                     self.loading2.getComponent("loading2").show()
                     // 延时0.2秒等待缩放动画完成
                     self.node.runAction(cc.sequence(cc.delayTime(0.2), cc.callFunc(function () {
@@ -192,15 +195,10 @@ cc.Class({
     },
 
     showEnterRoom: function () {
-        let self = this
-        this.node.runAction(cc.sequence(cc.delayTime(0.3), cc.callFunc(function () {
-            Notification.emit("disable")
+        Notification.emit("disable")
 
-            self.enterRoom.active = true
-            self.enterRoomFrame.runAction(cc.sequence(cc.scaleTo(0.1, 1.1), cc.scaleTo(0.1, 0.9), cc.scaleTo(0.1, 1)))
-
-            self.onKeyPressed(null, "reset")
-        })))
+        this.enterRoom.active = true
+        this.enterRoomFrame.runAction(cc.sequence(cc.scaleTo(0.1, 1.1), cc.scaleTo(0.1, 0.9), cc.scaleTo(0.1, 1)))
     },
 
     hideEnterRoom: function () {
@@ -209,6 +207,33 @@ cc.Class({
         let self = this
         this.enterRoomFrame.runAction(cc.sequence(cc.scaleTo(0.1, 0), cc.callFunc(function () {
             self.enterRoom.active = false
+        })))
+    },
+
+    onRoomNumberChanged: function (text, editbox, customEventData) {
+        if (text.length == 6) {
+            this.enterRoom.active = false
+            this.loading.getComponent("loading").show()
+
+            this.node.runAction(cc.sequence(cc.delayTime(1), cc.callFunc(function () {
+                sendEnterRoom(text)
+            })))
+        }
+    },
+
+    showInform: function () {
+        Notification.emit("disable")
+
+        this.inform.active = true
+        this.informFrame.runAction(cc.sequence(cc.scaleTo(0.1, 1.1), cc.scaleTo(0.1, 0.9), cc.scaleTo(0.1, 1)))
+    },
+
+    hideInform: function () {
+        Notification.emit("enable")
+
+        let self = this
+        this.informFrame.runAction(cc.sequence(cc.scaleTo(0.1, 0), cc.callFunc(function () {
+            self.inform.active = false
         })))
     },
 
@@ -321,9 +346,17 @@ cc.Class({
             if (result.S2C_EnterRoom.Error === 0) { // S2C_EnterRoom_OK
                 cc.director.loadScene(room)
             } else if (result.S2C_EnterRoom.Error === 1) { // S2C_EnterRoom_NotCreated
-                this.dialog.getComponent("dialog").setMessage("房间: " + result.S2C_EnterRoom.RoomNumber + " 未创建").show()
+                let self = this
+                this.dialog.getComponent("dialog").setMessage("房间: " + result.S2C_EnterRoom.RoomNumber + " 未创建").
+                    setPositiveButton(function () {
+                        self.showEnterRoom()
+                    }).show()
             } else if (result.S2C_EnterRoom.Error === 2) { // S2C_EnterRoom_NotAllowBystander
-                this.dialog.getComponent("dialog").setMessage("房间: " + result.S2C_EnterRoom.RoomNumber + " 玩家人数已满").show()
+                let self = this
+                this.dialog.getComponent("dialog").setMessage("房间: " + result.S2C_EnterRoom.RoomNumber + " 玩家人数已满").
+                    setPositiveButton(function () {
+                        self.showEnterRoom()
+                    }).show()
             } else if (result.S2C_EnterRoom.Error === 3) { // S2C_EnterRoom_InOtherRoom
                 this.dialog.getComponent("dialog").setMessage("正在其他房间对局，是否回去？").
                     setPositiveButton(function () {
@@ -335,7 +368,7 @@ cc.Class({
                 if (roomNumber) {
                     msg = "进入房间：" + roomNumber + " 出错，请稍后重试"
                 }
-                
+
                 this.dialog.getComponent("dialog").setMessage(msg).
                     setPositiveButton(function () {
 

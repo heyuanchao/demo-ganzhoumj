@@ -13,6 +13,7 @@ cc.Class({
         btnEnterRoom: cc.Button,
         btnSetUp: cc.Button,
         btnShare: cc.Button,
+        btnInform: cc.Button,
     },
 
     // use this for initialization
@@ -65,15 +66,6 @@ cc.Class({
         }, this)
 
         Notification.on("onclose", this.reconnect, this)
-
-        Notification.on("enable", function () {
-            self.setButtonsEnabled(true)
-        })
-
-        Notification.on("disable", function () {
-            self.setButtonsEnabled(false)
-        })
-
         cc.log("hall onLoad")
     },
 
@@ -96,16 +88,6 @@ cc.Class({
         Notification.offType("onmessage")
         Notification.offType("onerror")
         Notification.offType("onclose")
-
-        Notification.offType("enable")
-        Notification.offType("disable")
-    },
-
-    setButtonsEnabled: function (enabled) {
-        this.btnCreateRoom.enabled = enabled
-        this.btnEnterRoom.enabled = enabled
-        this.btnSetUp.enabled = enabled
-        this.btnShare.enabled = enabled
     },
 
     reconnect: function () {
@@ -162,18 +144,13 @@ cc.Class({
     },
 
     showCreateRoom: function () {
-        let self = this
-        this.node.runAction(cc.sequence(cc.delayTime(0.3), cc.callFunc(function () {
-            Notification.emit("disable")
+        Notification.emit("disable")
 
-            self.createRoom.active = true
-            self.createRoomFrame.runAction(cc.sequence(cc.scaleTo(0.1, 1.1), cc.scaleTo(0.1, 0.9), cc.scaleTo(0.1, 1)))
-        })))
+        this.createRoom.active = true
+        this.createRoomFrame.runAction(cc.sequence(cc.scaleTo(0.1, 1.1), cc.scaleTo(0.1, 0.9), cc.scaleTo(0.1, 1)))
     },
 
     hideCreatRoom: function () {
-        Notification.emit("enable")
-
         let self = this
         this.createRoomFrame.runAction(cc.sequence(cc.scaleTo(0.1, 0), cc.callFunc(function () {
             self.createRoom.active = false
@@ -189,9 +166,7 @@ cc.Class({
     },
 
     createDaoZhouRoom: function () {
-        // sendCreateDaoZhouRoom()
-        // sendCreateGanZhouRoom()
-        sendCreateRunJinRoom()
+        sendCreateDaoZhouRoom()
     },
 
     showEnterRoom: function () {
@@ -202,8 +177,6 @@ cc.Class({
     },
 
     hideEnterRoom: function () {
-        Notification.emit("enable")
-
         let self = this
         this.enterRoomFrame.runAction(cc.sequence(cc.scaleTo(0.1, 0), cc.callFunc(function () {
             self.enterRoom.active = false
@@ -229,59 +202,14 @@ cc.Class({
     },
 
     hideInform: function () {
-        Notification.emit("enable")
-
         let self = this
         this.informFrame.runAction(cc.sequence(cc.scaleTo(0.1, 0), cc.callFunc(function () {
             self.inform.active = false
         })))
     },
 
-    onKeyPressed: function (event, customEventData) {
-        if (customEventData == "reset") {
-            if (this.roomNumber.node.active) {
-                this.roomNumber.node.active = false
-                this.roomNumberPlaceHolder.active = true
-                this.roomNumber.string = ""
-            }
-
-            return
-        }
-
-        if (customEventData == "delete") {
-            if (this.roomNumberPlaceHolder.active) {
-                return
-            }
-
-            this.roomNumber.string = this.roomNumber.string.substr(0, this.roomNumber.string.length - 1)
-            if (this.roomNumber.string.length == 0) {
-                this.roomNumber.node.active = false
-                this.roomNumberPlaceHolder.active = true
-            }
-
-            return
-        }
-
-        if (this.roomNumberPlaceHolder.active) {
-            this.roomNumber.node.active = true
-            this.roomNumberPlaceHolder.active = false
-            this.roomNumber.string = ""
-        }
-
-        if (this.roomNumber.string.length == 6) {
-            return
-        }
-
-        this.roomNumber.string += customEventData
-        if (this.roomNumber.string.length == 6) {
-            this.enterRoom.active = false
-            this.loading.getComponent("loading").show()
-
-            let self = this
-            this.node.runAction(cc.sequence(cc.delayTime(1), cc.callFunc(function () {
-                sendEnterRoom(self.roomNumber.string)
-            })))
-        }
+    test() {
+        cc.log("aaa")
     },
 
     onResult(result) {
@@ -360,7 +288,7 @@ cc.Class({
             } else if (result.S2C_EnterRoom.Error === 3) { // S2C_EnterRoom_InOtherRoom
                 this.dialog.getComponent("dialog").setMessage("正在其他房间对局，是否回去？").
                     setPositiveButton(function () {
-
+                        
                     }).show()
             } else if (result.S2C_EnterRoom.Error === 4) { // S2C_EnterRoom_Unknown
                 let msg = "进入房间出错，请稍后重试"

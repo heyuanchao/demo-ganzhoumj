@@ -49,14 +49,6 @@ cc.Class({
         }, this)
 
         Notification.on("onclose", this.reconnect, this)
-
-        Notification.on("enable", function () {
-            self.setButtonsEnabled(true)
-        })
-
-        Notification.on("disable", function () {
-            self.setButtonsEnabled(false)
-        })
     },
 
     start: function () {
@@ -86,9 +78,6 @@ cc.Class({
         Notification.offType("onmessage")
         Notification.offType("onerror")
         Notification.offType("onclose")
-
-        Notification.offType("enable")
-        Notification.offType("disable")
     },
 
     initializeVariable: function () {
@@ -121,13 +110,6 @@ cc.Class({
         this.user2Ready = cc.find("Canvas/bg/user2/ready_tag")
         this.user3Ready = cc.find("Canvas/bg/user3/ready_tag")
         this.user4Ready = cc.find("Canvas/bg/user4/ready_tag")
-    },
-
-    setButtonsEnabled: function (enabled) {
-        this.btnSetUp.enabled = enabled
-        this.btnInviteFriend.enabled = enabled
-        this.btnDisbandRoom.enabled = enabled
-        this.btnExitRoom.enabled = enabled
     },
 
     reconnect: function () {

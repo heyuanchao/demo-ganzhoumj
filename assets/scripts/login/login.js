@@ -36,15 +36,6 @@ cc.Class({
             self.loading.getComponent("loading").hide()
             self.dialog.getComponent("dialog").setMessage("登录失败，请稍后重试").setPositiveButton(null).show()
         }, this)
-
-        Notification.on("enable", function () {
-            self.btnWeChatLogin.enabled = true
-        })
-
-        Notification.on("disable", function () {
-            self.btnWeChatLogin.enabled = false
-        })
-
         cc.log("login onLoad")
     },
 
@@ -60,9 +51,6 @@ cc.Class({
         Notification.offType("onopen")
         Notification.offType("onmessage")
         Notification.offType("onerror")
-
-        Notification.offType("enable")
-        Notification.offType("disable")
     },
 
     playOkEffect: function () {

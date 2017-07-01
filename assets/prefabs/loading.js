@@ -40,8 +40,6 @@ cc.Class({
 
     hide: function () {
         if (this.node.active) {
-            Notification.emit("enable")
-
             this.unschedule(this.updateMessage)
             this.node.active = false
         }

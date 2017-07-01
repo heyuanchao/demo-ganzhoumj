@@ -92,8 +92,6 @@ cc.Class({
 
     hide: function () {
         if (this.node.active) {
-            Notification.emit("enable")
-
             let self = this
             this.frame.runAction(cc.sequence(cc.scaleTo(0.1, 0), cc.callFunc(function () {
                 self.node.active = false

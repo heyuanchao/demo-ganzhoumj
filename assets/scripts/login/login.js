@@ -81,9 +81,6 @@ cc.Class({
 
         let self = this
         this.node.runAction(cc.sequence(cc.delayTime(1), cc.callFunc(function () {
-            // self.node.stopAllActions()
-            // self.btnWeChatLogin.enabled = false
-
             if (cc.sys.isMobile) {
                 // cc.find('Bgm').getComponent('bgm').pause();
                 if (cc.sys.os == cc.sys.OS_ANDROID) {

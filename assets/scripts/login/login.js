@@ -43,6 +43,7 @@ cc.Class({
         cc.log("login start")
         let token = cc.sys.localStorage.getItem("token")
         if (token) {
+            this.loading.getComponent("loading").show()
             this.requestLogin()
         }
     },
@@ -71,15 +72,17 @@ cc.Class({
     },
 
     // Java 调用
-    setWeChatLoginEnabled() {
-        this.btnWeChatLogin.enabled = true
+    hideLoading() {
+        this.loading.getComponent("loading").hide()
     },
 
     wechatLogin: function () {
+        this.loading.getComponent("loading").show()
+
         let self = this
-        this.node.runAction(cc.sequence(cc.delayTime(0.3), cc.callFunc(function () {
-            self.node.stopAllActions()
-            self.btnWeChatLogin.enabled = false
+        this.node.runAction(cc.sequence(cc.delayTime(1), cc.callFunc(function () {
+            // self.node.stopAllActions()
+            // self.btnWeChatLogin.enabled = false
 
             if (cc.sys.isMobile) {
                 // cc.find('Bgm').getComponent('bgm').pause();
@@ -155,18 +158,12 @@ cc.Class({
     },
 
     requestLogin() {
-        this.loading.getComponent("loading").show()
-
-        this.node.runAction(cc.sequence(cc.delayTime(1), cc.callFunc(function () {
-            if (ws == null) {
-                initWebSocket()
-            }
-        })))
+        if (!isConnected()) {
+            initWebSocket()
+        }
     },
 
     onResult(result) {
-        this.loading.getComponent("loading").hide()
-
         if (result.S2C_Login) {
             cc.log('login another room: ' + userInfo.anotherRoom)
             if (userInfo.anotherRoom) {
@@ -175,6 +172,8 @@ cc.Class({
                 cc.director.loadScene(hall)
             }
         } else if (result.S2C_Close) {
+            this.loading.getComponent("loading").hide()
+
             if (result.S2C_Close.Error === 1) { // S2C_Close_LoginRepeated
                 //this.launch_dialog.getComponent('launch_dialog').show('您的账号在其他设备上线，非本人操作请注意修改密码')
             } else if (result.S2C_Close.Error === 2) { // S2C_Close_InnerError
@@ -189,6 +188,10 @@ cc.Class({
                 this.dialog.getComponent("dialog").setMessage("登录态失效，用户名无效").show()
             }
         } else if (result.S2C_EnterRoom) {
+            if (result.S2C_EnterRoom.Error > 0) {
+                this.loading.getComponent("loading").hide()
+            }
+
             if (result.S2C_EnterRoom.Error === 0) { // S2C_EnterRoom_OK
                 cc.director.loadScene(room)
             } else if (result.S2C_EnterRoom.Error === 1) { // S2C_EnterRoom_NotCreated

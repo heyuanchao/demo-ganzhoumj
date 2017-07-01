@@ -271,27 +271,27 @@ cc.Class({
                 setUserInfo(user2Info, obj)
                 this.user2.active = true
                 this.loadUserInfo(this.user2Nickname, nickname, this.user2Avatar, headimgurl)
-                
+
                 this.user2Owner.active = owner
                 this.user2Ready.active = ready
             } else if (pos == (userInfo.position + 2) % roomInfo.maxPlayers) {
                 setUserInfo(user3Info, obj)
                 this.user3.active = true
                 this.loadUserInfo(this.user3Nickname, nickname, this.user3Avatar, headimgurl)
-                
+
                 this.user3Owner.active = owner
                 this.user3Ready.active = ready
             } else if (pos == (userInfo.position + 3) % roomInfo.maxPlayers) {
                 setUserInfo(user4Info, obj)
                 this.user4.active = true
                 this.loadUserInfo(this.user4Nickname, nickname, this.user4Avatar, headimgurl)
-                
+
                 this.user4Owner.active = owner
                 this.user4Ready.active = ready
             }
         } else if (result.S2C_DisbandRoom) {
             if (result.S2C_DisbandRoom.Error === 0) { // S2C_DisbandRoom_OK
-                let msg = "房间: " + result.S2C_DisbandRoom.RoomNumber + " 已经被房主: " + result.S2C_DisbandRoom.OwnerNickName + "解散" 
+                let msg = "房间: " + result.S2C_DisbandRoom.RoomNumber + " 已经被房主" + result.S2C_DisbandRoom.OwnerNickName + "解散"
                 this.dialog.getComponent("dialog").setMessage(msg).
                     setPositiveButton(function () {
                         cc.director.loadScene(hall)

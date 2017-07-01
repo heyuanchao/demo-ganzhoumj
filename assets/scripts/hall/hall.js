@@ -39,9 +39,6 @@ cc.Class({
         this.enterRoom = cc.find("Canvas/bg/enter_room")
         this.enterRoomFrame = cc.find("Canvas/bg/enter_room/frame")
 
-        // this.roomNumber = cc.find("Canvas/bg/enter_room/frame/input/room_number").getComponent(cc.Label)
-        // this.roomNumberPlaceHolder = cc.find("Canvas/bg/enter_room/frame/input/place_holder")
-
         Notification.on("onopen", function () {
             sendTokenLogin()
         }, this)
@@ -144,8 +141,6 @@ cc.Class({
     },
 
     showCreateRoom: function () {
-        Notification.emit("disable")
-
         this.createRoom.active = true
         this.createRoomFrame.runAction(cc.sequence(cc.scaleTo(0.1, 1.1), cc.scaleTo(0.1, 0.9), cc.scaleTo(0.1, 1)))
     },
@@ -158,20 +153,28 @@ cc.Class({
     },
 
     createGanZhouRoom: function () {
-        sendCreateGanZhouRoom()
+        this.loading.getComponent("loading").show()
+        this.node.runAction(cc.sequence(cc.delayTime(0.5), cc.callFunc(function () {
+            sendCreateGanZhouRoom()
+        })))
     },
 
     createRunJinRoom: function () {
-        sendCreateRunJinRoom()
+        this.loading.getComponent("loading").show()
+        this.node.runAction(cc.sequence(cc.delayTime(0.5), cc.callFunc(function () {
+            sendCreateRunJinRoom()
+        })))
     },
 
     createDaoZhouRoom: function () {
-        sendCreateDaoZhouRoom()
+        this.loading.getComponent("loading").show()
+        this.node.runAction(cc.sequence(cc.delayTime(0.5), cc.callFunc(function () {
+            // sendCreateDaoZhouRoom()
+            sendCreateRunJinRoom()
+        })))
     },
 
     showEnterRoom: function () {
-        Notification.emit("disable")
-
         this.enterRoom.active = true
         this.enterRoomFrame.runAction(cc.sequence(cc.scaleTo(0.1, 1.1), cc.scaleTo(0.1, 0.9), cc.scaleTo(0.1, 1)))
     },
@@ -185,7 +188,7 @@ cc.Class({
 
     onRoomNumberChanged: function (text, editbox, customEventData) {
         if (text.length == 6) {
-            this.enterRoom.active = false
+            // this.enterRoom.active = false
             this.loading.getComponent("loading").show()
 
             this.node.runAction(cc.sequence(cc.delayTime(1), cc.callFunc(function () {
@@ -208,23 +211,22 @@ cc.Class({
         })))
     },
 
-    test() {
-        cc.log("aaa")
-    },
-
     onResult(result) {
         cc.log(result)
-        this.loading.getComponent("loading").hide()
-        this.loading2.getComponent("loading2").hide()
-
         if (result.S2C_Login) {
             cc.log('hall another room: ' + userInfo.anotherRoom)
             if (userInfo.anotherRoom) {
                 sendEnterRoom("")
             } else {
+                this.loading.getComponent("loading").hide()
+                this.loading2.getComponent("loading2").hide()
+
                 this.loadUserInfo()
             }
         } else if (result.S2C_Close) {
+            this.loading.getComponent("loading").hide()
+            this.loading2.getComponent("loading2").hide()
+
             if (result.S2C_Close.Error === 1) { // S2C_Close_LoginRepeated
                 this.dialog.getComponent("dialog").setMessage("您的账号在其他设备上线，非本人操作请注意修改密码").
                     setPositiveButton(function () {
@@ -257,6 +259,11 @@ cc.Class({
                     }).show()
             }
         } else if (result.S2C_CreateRoom) {
+            this.createRoom.active = false
+
+            this.loading.getComponent("loading").hide()
+            this.loading2.getComponent("loading2").hide()
+
             if (result.S2C_CreateRoom.Error === 1) { // S2C_CreateRoom_InnerError
                 this.dialog.getComponent("dialog").setMessage("创建房间出错，请联系客服").
                     setPositiveButton(function () {
@@ -271,6 +278,13 @@ cc.Class({
                     }).show()
             }
         } else if (result.S2C_EnterRoom) {
+            if (result.S2C_EnterRoom.Error > 0) {
+                this.enterRoom.active = false
+
+                this.loading.getComponent("loading").hide()
+                this.loading2.getComponent("loading2").hide()
+            }
+
             if (result.S2C_EnterRoom.Error === 0) { // S2C_EnterRoom_OK
                 cc.director.loadScene(room)
             } else if (result.S2C_EnterRoom.Error === 1) { // S2C_EnterRoom_NotCreated
@@ -288,7 +302,7 @@ cc.Class({
             } else if (result.S2C_EnterRoom.Error === 3) { // S2C_EnterRoom_InOtherRoom
                 this.dialog.getComponent("dialog").setMessage("正在其他房间对局，是否回去？").
                     setPositiveButton(function () {
-                        
+
                     }).show()
             } else if (result.S2C_EnterRoom.Error === 4) { // S2C_EnterRoom_Unknown
                 let msg = "进入房间出错，请稍后重试"

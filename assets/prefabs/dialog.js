@@ -75,6 +75,8 @@ cc.Class({
     },
 
     show: function () {
+        Notification.emit("onshow")
+
         if (this.node.active) {
             return
         }
@@ -83,8 +85,6 @@ cc.Class({
             this.positiveButton.node.x = 180
             this.negativeButton.node.x = -180
         }
-
-        Notification.emit("disable")
 
         this.node.active = true
         this.frame.runAction(cc.sequence(cc.scaleTo(0.1, 1.1), cc.scaleTo(0.1, 0.9), cc.scaleTo(0.1, 1)))

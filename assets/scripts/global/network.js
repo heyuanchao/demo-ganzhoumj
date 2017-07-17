@@ -26,13 +26,12 @@ window.initWebSocket = function () {
 
         if (result.S2C_Login) {
             let obj = result.S2C_Login
-            
+
             setUserInfo(userInfo, obj)
             userInfo.anotherLogin = obj.AnotherLogin
             userInfo.anotherRoom = obj.AnotherRoom
 
             cc.sys.localStorage.setItem("token", obj.Token)
-            cc.sys.localStorage.setItem("username", obj.Username)
         } else if (result.S2C_EnterRoom) {
             let obj = result.S2C_EnterRoom
             if (obj.Error === 0) { // S2C_EnterRoom_OK
@@ -96,7 +95,6 @@ window.sendWeChatLogin = function () {
 window.sendTokenLogin = function () {
     sendJsonObject({
         C2S_TokenLogin: {
-            username: cc.sys.localStorage.getItem("username"),
             token: cc.sys.localStorage.getItem("token"),
         }
     })
@@ -110,10 +108,14 @@ window.sendCreateGanZhouRoom = function () {
     })
 }
 
-window.sendCreateRunJinRoom = function () {
+window.sendCreateRuiJinRoom = function () {
     sendJsonObject({
         C2S_CreateRuiJinRoom: {
-
+            jushu: ruijinRule.jushu,
+            renshu: ruijinRule.renshu,
+            mustzimo: ruijinRule.mustzimo,
+            difen: ruijinRule.difen,
+            fenzhuangxian: ruijinRule.fenzhuangxian,
         }
     })
 }
@@ -121,7 +123,7 @@ window.sendCreateRunJinRoom = function () {
 window.sendCreateDaoZhouRoom = function () {
     sendJsonObject({
         C2S_CreateDaoZhouRoom: {
-
+            
         }
     })
 }
@@ -130,8 +132,8 @@ window.sendEnterRoom = function (number) {
     sendJsonObject({ C2S_EnterRoom: { roomNumber: number } })
 }
 
-window.sendGetPlayerInfo = function () {
-    sendJsonObject({ C2S_GetPlayerInfo: {} })
+window.sendGetAllPlayers = function () {
+    sendJsonObject({ C2S_GetAllPlayers: {} })
 }
 
 window.sendExitOrDisbandRoom = function () {

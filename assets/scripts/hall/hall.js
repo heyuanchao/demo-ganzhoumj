@@ -5,7 +5,6 @@ cc.Class({
         dialogPrefab: cc.Prefab,
         settingPrefab: cc.Prefab,
         loadingPrefab: cc.Prefab,
-        loading2Prefab: cc.Prefab,
         avatar: cc.Sprite,
         nickname: cc.Label,
         accountID: cc.Label,
@@ -18,17 +17,14 @@ cc.Class({
 
     // use this for initialization
     onLoad: function () {
-        this.dialog = cc.instantiate(this.dialogPrefab)
-        this.node.addChild(this.dialog)
-
         this.setting = cc.instantiate(this.settingPrefab)
         this.node.addChild(this.setting)
 
+        this.dialog = cc.instantiate(this.dialogPrefab)
+        this.node.addChild(this.dialog)
+
         this.loading = cc.instantiate(this.loadingPrefab)
         this.node.addChild(this.loading)
-
-        this.loading2 = cc.instantiate(this.loading2Prefab)
-        this.node.addChild(this.loading2)
 
         this.inform = cc.find("Canvas/bg/inform")
         this.informFrame = cc.find("Canvas/bg/inform/frame")
@@ -47,11 +43,11 @@ cc.Class({
 
         let self = this
         Notification.on("onerror", function () {
-            self.loading2.getComponent("loading2").hide()
+            self.loading.getComponent("loading").hide()
 
             self.dialog.getComponent("dialog").setMessage("无法连接服务器，是否继续尝试重连?").
                 setPositiveButton(function () {
-                    self.loading2.getComponent("loading2").show()
+                    self.loading.getComponent("loading").setMessage("正在连接").show()
                     // 延时0.2秒等待缩放动画完成
                     self.node.runAction(cc.sequence(cc.delayTime(0.2), cc.callFunc(function () {
                         initWebSocket()
@@ -63,6 +59,10 @@ cc.Class({
         }, this)
 
         Notification.on("onclose", this.reconnect, this)
+
+        Notification.on("onshow", function () {
+            this.loading.getComponent("loading").hide()
+        }, this)
         cc.log("hall onLoad")
     },
 
@@ -76,7 +76,15 @@ cc.Class({
                 this.dialog.getComponent("dialog").setMessage("您的账号刚在其他设备上线，请您检查账号安全").show()
             }
         } else {
-            this.reconnect()
+            let token = cc.sys.localStorage.getItem("token")
+            if (token) {
+                this.reconnect()
+            } else {
+                this.dialog.getComponent("dialog").setMessage("登录态失效，请您重新登录").
+                    setPositiveButton(function () {
+                        cc.director.loadScene(login)
+                    }).show()
+            }
         }
     },
 
@@ -85,6 +93,8 @@ cc.Class({
         Notification.offType("onmessage")
         Notification.offType("onerror")
         Notification.offType("onclose")
+
+        Notification.offType("onshow")
     },
 
     reconnect: function () {
@@ -93,7 +103,7 @@ cc.Class({
             return
         }
 
-        this.loading2.getComponent("loading2").show()
+        this.loading.getComponent("loading").show()
         initWebSocket()
     },
 
@@ -159,10 +169,10 @@ cc.Class({
         })))
     },
 
-    createRunJinRoom: function () {
+    createRuiJinRoom: function () {
         this.loading.getComponent("loading").show()
         this.node.runAction(cc.sequence(cc.delayTime(0.5), cc.callFunc(function () {
-            sendCreateRunJinRoom()
+            sendCreateRuiJinRoom()
         })))
     },
 
@@ -170,7 +180,7 @@ cc.Class({
         this.loading.getComponent("loading").show()
         this.node.runAction(cc.sequence(cc.delayTime(0.5), cc.callFunc(function () {
             // sendCreateDaoZhouRoom()
-            sendCreateRunJinRoom()
+            sendCreateRuiJinRoom()
         })))
     },
 
@@ -211,6 +221,10 @@ cc.Class({
         })))
     },
 
+    setRuiJinRound: function (event, customEventData) {
+        ruijinRule.round = customEventData
+    },
+
     onResult(result) {
         cc.log(result)
         if (result.S2C_Login) {
@@ -219,14 +233,10 @@ cc.Class({
                 sendEnterRoom("")
             } else {
                 this.loading.getComponent("loading").hide()
-                this.loading2.getComponent("loading2").hide()
 
                 this.loadUserInfo()
             }
         } else if (result.S2C_Close) {
-            this.loading.getComponent("loading").hide()
-            this.loading2.getComponent("loading2").hide()
-
             if (result.S2C_Close.Error === 1) { // S2C_Close_LoginRepeated
                 this.dialog.getComponent("dialog").setMessage("您的账号在其他设备上线，非本人操作请注意修改密码").
                     setPositiveButton(function () {
@@ -261,9 +271,6 @@ cc.Class({
         } else if (result.S2C_CreateRoom) {
             this.createRoom.active = false
 
-            this.loading.getComponent("loading").hide()
-            this.loading2.getComponent("loading2").hide()
-
             if (result.S2C_CreateRoom.Error === 1) { // S2C_CreateRoom_InnerError
                 this.dialog.getComponent("dialog").setMessage("创建房间出错，请联系客服").
                     setPositiveButton(function () {
@@ -278,13 +285,6 @@ cc.Class({
                     }).show()
             }
         } else if (result.S2C_EnterRoom) {
-            if (result.S2C_EnterRoom.Error > 0) {
-                this.enterRoom.active = false
-
-                this.loading.getComponent("loading").hide()
-                this.loading2.getComponent("loading2").hide()
-            }
-
             if (result.S2C_EnterRoom.Error === 0) { // S2C_EnterRoom_OK
                 cc.director.loadScene(room)
             } else if (result.S2C_EnterRoom.Error === 1) { // S2C_EnterRoom_NotCreated

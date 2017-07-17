@@ -22,3 +22,11 @@ window.setUserInfo = function (info, obj) {
     info.sex = obj.Sex
     info.ip = obj.Ip
 }
+
+window.ruijinRule = {
+    rounds: 4,
+    number: 4,
+    mustselfdraw: false,
+    basescore: 1,
+    distinguishdealer: false,
+}

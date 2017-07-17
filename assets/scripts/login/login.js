@@ -8,15 +8,12 @@ cc.Class({
 
     // use this for initialization
     onLoad: function () {
-        this.btnWeChatLogin = cc.find("Canvas/bg/btn_wechat_login").getComponent(cc.Button)
-
         this.dialog = cc.instantiate(this.dialogPrefab)
         this.node.addChild(this.dialog)
 
         this.loading = cc.instantiate(this.loadingPrefab)
         this.node.addChild(this.loading)
 
-        let self = this
         Notification.on("onopen", function () {
             let token = cc.sys.localStorage.getItem("token")
             if (token) {
@@ -33,8 +30,11 @@ cc.Class({
         Notification.on("onmessage", this.onResult, this)
 
         Notification.on("onerror", function () {
-            self.loading.getComponent("loading").hide()
-            self.dialog.getComponent("dialog").setMessage("登录失败，请稍后重试").setPositiveButton(null).show()
+            this.dialog.getComponent("dialog").setMessage("登录失败，请稍后重试").setPositiveButton(null).show()
+        }, this)
+
+        Notification.on("onshow", function () {
+            this.loading.getComponent("loading").hide()
         }, this)
         cc.log("login onLoad")
     },
@@ -52,6 +52,8 @@ cc.Class({
         Notification.offType("onopen")
         Notification.offType("onmessage")
         Notification.offType("onerror")
+
+        Notification.offType("onshow")
     },
 
     playOkEffect: function () {
@@ -91,8 +93,8 @@ cc.Class({
                 }
             } else if (cc.sys.isBrowser) {
                 // userInfo = JSON.parse("{\"openid\":\"ogveqvz3OnJdvicWmZDFXf1I8Xt4\",\"nickname\":\"我是谁\",\"sex\":1,\"language\":\"zh_CN\",\"city\":\"Shenzhen\",\"province\":\"Guangdong\",\"country\":\"CN\",\"headimgurl\":\"http:\/\/wx.qlogo.cn\/mmopen\/Po9mkm3Z42tolYpxUVpY6mvCmqalibOpcJ2jG3Qza5qgtibO1NLFNUF7icwCibxPicbGmkoiciaqKEIdvvveIBfEQqal8vkiavHIeqFT\/0\",\"privilege\":[],\"unionid\":\"o8c-nt6tO8aIBNPoxvXOQTVJUxY0\"}");
-                // userInfo = JSON.parse("{\"openid\":\"ogveqvz3OnJdvicWmZDFXf1I8Xt4\",\"nickname\":\"我是谁\",\"sex\":1,\"language\":\"zh_CN\",\"city\":\"Shenzhen\",\"province\":\"Guangdong\",\"country\":\"CN\",\"headimgurl\":\"http:\/\/wx.qlogo.cn\/mmopen\/Po9mkm3Z42tolYpxUVpY6mvCmqalibOpcJ2jG3Qza5qgtibO1NLFNUF7icwCibxPicbGmkoiciaqKEIdvvveIBfEQqal8vkiavHIeqFT\/0\",\"privilege\":[],\"unionid\":\"o18ETxEjvn-4_04LWW5_tRBdexcQ\"}");
-                userInfo = JSON.parse("{\"openid\":\"ogveqvz3OnJdvicWmZDFXf1I8Xt4\",\"nickname\":\"在努力的龙小博\",\"sex\":1,\"language\":\"zh_CN\",\"city\":\"Shenzhen\",\"province\":\"Guangdong\",\"country\":\"CN\",\"headimgurl\":\"http:\/\/wx.qlogo.cn\/mmopen\/WT9MJf6I7WAkic7ficWBuYbvkMscic97pBa0BbicwKCmOvicsPr1GozNMWnp4gfwMib0A5zdDyUOjaFFSdrz0viao3oKpsXqAeF9ZJ1\/0\",\"privilege\":[],\"unionid\":\"o8c-nt2jC5loIHg1BQGgYW6aqe60\"}");
+                userInfo = JSON.parse("{\"openid\":\"ogveqvz3OnJdvicWmZDFXf1I8Xt4\",\"nickname\":\"我是谁\",\"sex\":1,\"language\":\"zh_CN\",\"city\":\"Shenzhen\",\"province\":\"Guangdong\",\"country\":\"CN\",\"headimgurl\":\"http:\/\/wx.qlogo.cn\/mmopen\/Po9mkm3Z42tolYpxUVpY6mvCmqalibOpcJ2jG3Qza5qgtibO1NLFNUF7icwCibxPicbGmkoiciaqKEIdvvveIBfEQqal8vkiavHIeqFT\/0\",\"privilege\":[],\"unionid\":\"o18ETxEjvn-4_04LWW5_tRBdexcQ\"}");
+                // userInfo = JSON.parse("{\"openid\":\"ogveqvz3OnJdvicWmZDFXf1I8Xt4\",\"nickname\":\"在努力的龙小博\",\"sex\":1,\"language\":\"zh_CN\",\"city\":\"Shenzhen\",\"province\":\"Guangdong\",\"country\":\"CN\",\"headimgurl\":\"http:\/\/wx.qlogo.cn\/mmopen\/WT9MJf6I7WAkic7ficWBuYbvkMscic97pBa0BbicwKCmOvicsPr1GozNMWnp4gfwMib0A5zdDyUOjaFFSdrz0viao3oKpsXqAeF9ZJ1\/0\",\"privilege\":[],\"unionid\":\"o8c-nt2jC5loIHg1BQGgYW6aqe60\"}");
                 // userInfo = JSON.parse("{\"openid\":\"ogveqvz3OnJdvicWmZDFXf1I8Xt4\",\"nickname\":\"honey\",\"sex\":1,\"language\":\"zh_CN\",\"city\":\"Shenzhen\",\"province\":\"Guangdong\",\"country\":\"CN\",\"headimgurl\":\"http:\/\/wx.qlogo.cn\/mmopen\/Po9mkm3Z42vkKC5g0b6kzjwUiaCice6Znv9wpCpOIpUjM4fTicPrldibAww7YtTZMlW3teKndBe9GcqBHcStictz3KPayVWnwGicKF\/0\",\"privilege\":[],\"unionid\":\"o8c-ntxW4cW601v6RjaAsExy98w4\"}");
                 self.requestLogin()
             }
@@ -110,6 +112,11 @@ cc.Class({
     },
 
     getAccessToken(code, state) {
+        if (code == null) {
+            this.dialog.getComponent("dialog").setMessage("获取微信用户信息出错，请重试").show()
+            return
+        }
+
         if (debug) {
             cc.log("code: " + code + ", state: " + state)
         }
@@ -130,6 +137,11 @@ cc.Class({
     },
 
     getUserInfo(access_token, openid) {
+        if (access_token == null || openid == null) {
+            this.dialog.getComponent("dialog").setMessage("获取微信用户信息出错，请重试").show()
+            return
+        }
+
         var self = this
         var xhr = cc.loader.getXMLHttpRequest();
         xhr.onreadystatechange = function () {
@@ -169,8 +181,6 @@ cc.Class({
                 cc.director.loadScene(hall)
             }
         } else if (result.S2C_Close) {
-            this.loading.getComponent("loading").hide()
-
             if (result.S2C_Close.Error === 1) { // S2C_Close_LoginRepeated
                 //this.launch_dialog.getComponent('launch_dialog').show('您的账号在其他设备上线，非本人操作请注意修改密码')
             } else if (result.S2C_Close.Error === 2) { // S2C_Close_InnerError
@@ -185,10 +195,6 @@ cc.Class({
                 this.dialog.getComponent("dialog").setMessage("登录态失效，用户名无效").show()
             }
         } else if (result.S2C_EnterRoom) {
-            if (result.S2C_EnterRoom.Error > 0) {
-                this.loading.getComponent("loading").hide()
-            }
-
             if (result.S2C_EnterRoom.Error === 0) { // S2C_EnterRoom_OK
                 cc.director.loadScene(room)
             } else if (result.S2C_EnterRoom.Error === 1) { // S2C_EnterRoom_NotCreated

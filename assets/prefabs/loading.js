@@ -43,6 +43,8 @@ cc.Class({
             this.unschedule(this.updateMessage)
             this.node.active = false
         }
+
+        this.message.string = "正在加载"
     },
 
     // called every frame, uncomment this function to activate update callback
